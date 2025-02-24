@@ -1,6 +1,6 @@
 import pymongo
 
-connection_string = "mongodb+srv://rrmimms:omPUgqwmGiMGZb0D@mtgcollection.5wlvw.mongodb.net/?retryWrites=true&w=majority&appName=MTGCollection"
+connection_string = "insert mongodb link here"
 client = pymongo.MongoClient(connection_string)
 db = client["MTGCollection"]
 collections = db["My_Collection"]
