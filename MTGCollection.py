@@ -14,6 +14,8 @@ collections = db["My_Collection"]
 
 def search_card():
     card = CardSearch.get_card()
+    for key, value in card.items():
+        print(f"{key} : {value}")
     print(card)
     print("Would you like to add this card to your collection?")
     add = input("Y/N: ")
@@ -26,7 +28,7 @@ def search_card():
 def add_card(card):
     collections.insert_one(card)
 
-def input_card():
+def input_cards():
     number_to_add = int(input("How many cards do you want to add? "))
     for i in range(number_to_add):
         card = {"name": input("Enter the name of the card: "), "set": input("Enter the set of the card: "),
@@ -70,7 +72,7 @@ def delete_card():
 def main():
     print("Welcome to the MTG Collection Manager")
     while True:
-        print("1. Add a card")
+        print("1. Add cards to collection")
         print("2. Get collection")
         print("3. Get card")
         print("4. Update card")
@@ -79,7 +81,7 @@ def main():
         print("7. Exit")
         choice = int(input("Enter the number of the action you want to perform: "))
         if choice == 1:
-            input_card()
+            input_cards()
         elif choice == 2:
             get_collection()
         elif choice == 3:
