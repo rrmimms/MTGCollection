@@ -1,10 +1,27 @@
 import pymongo
+import configparser
+import CardSearch
 
-connection_string = "insert mongodb link here"
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+mongo_key = config["section1"]["mongo_key"]
+
+connection_string = mongo_key
 client = pymongo.MongoClient(connection_string)
 db = client["MTGCollection"]
 collections = db["My_Collection"]
 
+def search_card():
+    card = CardSearch.get_card()
+    print(card)
+    print("Would you like to add this card to your collection?")
+    add = input("Y/N: ")
+    if add == "Y":
+        add_card(card)
+        print("Card added to collection")
+    else:
+        print("Card not added to collection")
 
 def add_card(card):
     collections.insert_one(card)
@@ -12,12 +29,10 @@ def add_card(card):
 def input_card():
     number_to_add = int(input("How many cards do you want to add? "))
     for i in range(number_to_add):
-        card = {}
-        card["name"] = input("Enter the name of the card: ")
-        card["set"] = input("Enter the set of the card: ")
-        card["quantity"] = int(input("Enter the quantity of the card: "))
-        card["foil"] = input("Is the card foil? (True/False): ")
-        card["price"] = float(input("Enter the price of the card: "))
+        card = {"name": input("Enter the name of the card: "), "set": input("Enter the set of the card: "),
+                "quantity": int(input("Enter the quantity of the card: ")),
+                "foil": input("Is the card foil? (True/False): "),
+                "price": float(input("Enter the price of the card: "))}
         add_card(card)
         for key, value in card.items():
             print(f"{key}: {value}")
@@ -60,7 +75,8 @@ def main():
         print("3. Get card")
         print("4. Update card")
         print("5. Delete card")
-        print("6. Exit")
+        print("6. Search Card")
+        print("7. Exit")
         choice = int(input("Enter the number of the action you want to perform: "))
         if choice == 1:
             input_card()
@@ -73,6 +89,8 @@ def main():
         elif choice == 5:
             delete_card()
         elif choice == 6:
+            search_card()
+        elif choice == 7:
             break
         else:
             print("Invalid choice. Please try again.")
