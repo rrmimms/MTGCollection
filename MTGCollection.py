@@ -1,3 +1,5 @@
+import time
+
 import pymongo
 import configparser
 import CardSearch
@@ -34,7 +36,8 @@ def input_cards():
         card = {"name": input("Enter the name of the card: "), "set": input("Enter the set of the card: "),
                 "quantity": int(input("Enter the quantity of the card: ")),
                 "foil": input("Is the card foil? (True/False): "),
-                "price": float(input("Enter the price of the card: "))}
+                }
+        card["price"] = CardSearch.get_price(card["name"])
         add_card(card)
         for key, value in card.items():
             print(f"{key}: {value}")
@@ -42,11 +45,14 @@ def input_cards():
 
 def get_collection():
     for card in collections.find():
+        card["price"] = CardSearch.get_price(card["name"])
         print(card)
+        time.sleep(.1)
 
 def get_card():
     name = input("Enter the name of the card you want to find: ")
     card = collections.find_one({"name": name})
+    card["price"] = CardSearch.get_price(name)
     print(card)
 
 def update_card():
@@ -56,6 +62,7 @@ def update_card():
     field = input("Enter the field you want to update: ")
     value = input(f"Enter the new value for {field}: ")
     collections.update_one({"name": name}, {"$set": {field: value}})
+    card["price"] = CardSearch.get_price(name)
     print("Card updated")
 
 def delete_card():
@@ -78,8 +85,9 @@ def main():
         print("4. Update card")
         print("5. Delete card")
         print("6. Search Card")
-        print("7. Exit")
-        choice = int(input("Enter the number of the action you want to perform: "))
+        print("7. Price Search")
+        print("8. Exit")
+        choice = int(input("Enter the number beside the action you want to perform: "))
         if choice == 1:
             input_cards()
         elif choice == 2:
@@ -91,8 +99,11 @@ def main():
         elif choice == 5:
             delete_card()
         elif choice == 6:
-            search_card()
+            CardSearch.get_card()
         elif choice == 7:
+            term = input("Please enter the name of the card you'd like pricing data for.")
+            print(CardSearch.get_price(term))
+        elif choice == 8:
             break
         else:
             print("Invalid choice. Please try again.")
