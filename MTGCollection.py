@@ -1,8 +1,10 @@
 import time
-
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 import pymongo
 import configparser
 import CardSearch
+
+app = Flask(__name__)
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -13,6 +15,11 @@ connection_string = mongo_key
 client = pymongo.MongoClient(connection_string)
 db = client["MTGCollection"]
 collections = db["My_Collection"]
+
+@app.route('/')
+def index():
+    return render_template(index.html)
+
 
 def search_card():
     card = CardSearch.get_card()
@@ -26,47 +33,53 @@ def search_card():
         print("Card added to collection")
     else:
         print("Card not added to collection")
-
+@app.route('/add_card', methods =['POST'])
 def add_card(card):
+    card = {
+        "name" : request.form['name'],
+        "set" : request.form['set'],
+        "quantity" : request.form['quantity'],
+        "foil" : request.form['foil'],
+        "price" : CardSearch.get_price(request.form['name'])
+    }
     collections.insert_one(card)
+    return redirect(url_for('index'))
 
-def input_cards():
-    number_to_add = int(input("How many cards do you want to add? "))
-    for i in range(number_to_add):
-        card = {"name": input("Enter the name of the card: "), "set": input("Enter the set of the card: "),
-                "quantity": int(input("Enter the quantity of the card: ")),
-                "foil": input("Is the card foil? (True/False): "),
-                }
-        card["price"] = CardSearch.get_price(card["name"])
-        add_card(card)
-        for key, value in card.items():
-            print(f"{key}: {value}")
-    print("Cards added to collection")
+# def input_cards():
+#     number_to_add = int(input("How many cards do you want to add? "))
+#     for i in range(number_to_add):
+#         card = {"name": input("Enter the name of the card: "), "set": input("Enter the set of the card: "),
+#                 "quantity": int(input("Enter the quantity of the card: ")),
+#                 "foil": input("Is the card foil? (True/False): "),
+#                 }
+#         card["price"] = CardSearch.get_price(card["name"])
+#         add_card(card)
+#         for key, value in card.items():
+#             print(f"{key}: {value}")
+#     print("Cards added to collection")
 
+@app.route('/get_collection')
 def get_collection():
-    for card in collections.find():
-        card["price"] = CardSearch.get_price(card["name"])
-        print(card)
+        cards = list(collections.find())
+        for card in cards:
+            card["price"] = CardSearch.get_price(card["name"])
         time.sleep(.1)
+        return render_template('collection.html', cards = cards)
 
+@app.route('/get_card', methods=['GET'])
 def get_card():
-    name = input("Enter the name of the card you want to find: ")
+    name = request.args.get('name')
     card = collections.find_one({"name": name})
-    card["price"] = CardSearch.get_price(name)
-    print(card)
+    if card:
+        card["price"] = CardSearch.get_price(name)
+    return render_template('card.html', card=card)
 
-def update_card():
-    name = input("Enter the name of the card you want to update: ")
-    card = collections.find_one({"name": name})
-    print(card)
-    field = input("Enter the field you want to update: ")
-    value = input(f"Enter the new value for {field}: ")
-    collections.update_one({"name": name}, {"$set": {field: value}})
-    card["price"] = CardSearch.get_price(name)
-    print("Card updated")
+# @app.route('/update_card', methods=['POST'])
+# def update_card():
 
+@app.route('/delete_card', methods=['POST'])
 def delete_card():
-    name = input("Enter the name of the card you want to delete: ")
+    name = request.form['name']
     card = collections.find_one({"name": name})
     print(card)
     confirm = input("Are you sure you want to delete this card? (Y/N) ")
@@ -75,37 +88,41 @@ def delete_card():
         print("Card deleted")
     else:
         print("Card not deleted")
+    return redirect(url_for('index'))
 
-def main():
-    print("Welcome to the MTG Collection Manager")
-    while True:
-        print("1. Add cards to collection")
-        print("2. Get collection")
-        print("3. Get card")
-        print("4. Update card")
-        print("5. Delete card")
-        print("6. Search Card")
-        print("7. Price Search")
-        print("8. Exit")
-        choice = int(input("Enter the number beside the action you want to perform: "))
-        if choice == 1:
-            input_cards()
-        elif choice == 2:
-            get_collection()
-        elif choice == 3:
-            get_card()
-        elif choice == 4:
-            update_card()
-        elif choice == 5:
-            delete_card()
-        elif choice == 6:
-            CardSearch.get_card()
-        elif choice == 7:
-            term = input("Please enter the name of the card you'd like pricing data for.")
-            print(CardSearch.get_price(term))
-        elif choice == 8:
-            break
-        else:
-            print("Invalid choice. Please try again.")
-    print("Goodbye!")
-main()
+if __name__ == '__main__':
+    app.run(debug=True)
+
+# def main():
+#     print("Welcome to the MTG Collection Manager")
+#     while True:
+#         print("1. Add cards to collection")
+#         print("2. Get collection")
+#         print("3. Get card")
+#         print("4. Update card")
+#         print("5. Delete card")
+#         print("6. Search Card")
+#         print("7. Price Search")
+#         print("8. Exit")
+#         choice = int(input("Enter the number beside the action you want to perform: "))
+#         if choice == 1:
+#             input_cards()
+#         elif choice == 2:
+#             get_collection()
+#         elif choice == 3:
+#             get_card()
+#         elif choice == 4:
+#             update_card()
+#         elif choice == 5:
+#             delete_card()
+#         elif choice == 6:
+#             CardSearch.get_card()
+#         elif choice == 7:
+#             term = input("Please enter the name of the card you'd like pricing data for.")
+#             print(CardSearch.get_price(term))
+#         elif choice == 8:
+#             break
+#         else:
+#             print("Invalid choice. Please try again.")
+#     print("Goodbye!")
+# main()

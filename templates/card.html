@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Card Details</title>
+</head>
+<body>
+    <h1>Card Details</h1>
+    {% if card %}
+    <p>Name: {{ card['name'] }}</p>
+    <p>Set: {{ card['set'] }}</p>
+    <p>Quantity: {{ card['quantity'] }}</p>
+    <p>Foil: {{ card['foil'] }}</p>
+    <p>Price: {{ card['price'] }}</p>
+    {% else %}
+    <p>Card not found</p>
+    {% endif %}
+    <a href="/">Back to Home</a>
+</body>
+</html>

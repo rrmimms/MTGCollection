@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MTG Collection</title>
+</head>
+<body>
+    <h1>MTG Collection</h1>
+    <ul>
+        {% for card in cards %}
+        <li>{{ card['name'] }} - {{ card['set'] }} - {{ card['quantity'] }} - {{ card['foil'] }} - {{ card['price'] }}</li>
+        {% endfor %}
+    </ul>
+    <a href="/">Back to Home</a>
+</body>
+</html>
