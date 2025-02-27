@@ -1,3 +1,4 @@
+from flask import render_template
 from mtgsdk import Card
 from mtgsdk import Set
 from mtgsdk import Type
@@ -5,7 +6,7 @@ from mtgsdk import Subtype
 from mtgsdk import Supertype
 import requests
 import json
-
+from flask import redirect, url_for
 
 headers = {
         "User_Agent" : "MTGCollection/1.0",
@@ -15,7 +16,23 @@ headers = {
 def get_price(name):
     response = requests.get("https://api.scryfall.com/cards/named?fuzzy=" + name, headers = headers)
     searchedCard = response.json()
-    return searchedCard["prices"]
+    if "prices" in searchedCard and "usd" in searchedCard["prices"]:
+        return searchedCard["prices"]["usd"]
+    else:
+        return {"error" : "Price information not available"}
+
+def get_image(name, set):
+    response = requests.get(f"https://api.scryfall.com/cards/named?fuzzy={name}&set={set}", headers = headers)
+    if response.status_code != 200:
+        return redirect(url_for('index'))
+
+    searchedCard = response.json()
+    if "image_uris" in searchedCard and "normal" in searchedCard["image_uris"]:
+        cardImage = searchedCard["image_uris"]["normal"]
+        return cardImage
+    else:
+        return redirect(url_for('index'))
+
 
 def get_card():
     print("What would you like to search for?")

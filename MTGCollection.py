@@ -4,7 +4,7 @@ import pymongo
 import configparser
 import CardSearch
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -18,7 +18,7 @@ collections = db["My_Collection"]
 
 @app.route('/')
 def index():
-    return render_template(index.html)
+    return render_template('index.html')
 
 
 def search_card():
@@ -34,16 +34,25 @@ def search_card():
     else:
         print("Card not added to collection")
 @app.route('/add_card', methods =['POST'])
-def add_card(card):
+def add_card():
     card = {
         "name" : request.form['name'],
         "set" : request.form['set'],
         "quantity" : request.form['quantity'],
         "foil" : request.form['foil'],
-        "price" : CardSearch.get_price(request.form['name'])
+        "price" : "$" + str(CardSearch.get_price(request.form['name']))
     }
     collections.insert_one(card)
     return redirect(url_for('index'))
+
+@app.route('/get_image', methods=['GET'])
+def get_image():
+    name = request.args.get['name']
+    set_code = request.args.get['set']
+    image_url = CardSearch.get_image(name, set_code)
+    if not image_url:
+        return redirect(url_for('index'))
+    return jsonify({"image_url": image_url})
 
 # def input_cards():
 #     number_to_add = int(input("How many cards do you want to add? "))
@@ -74,9 +83,22 @@ def get_card():
         card["price"] = CardSearch.get_price(name)
     return render_template('card.html', card=card)
 
-# @app.route('/update_card', methods=['POST'])
-# def update_card():
+@app.route('/update_card', methods=['POST'])
+def update_card():
+    name = request.form['name']
+    card = collections.find_one({"name": name})
+    if card:
+        update_fields = {}
+        if request.form['set']:
+            update_fields['set'] = request.form['set']
+        if request.form['quantity']:
+            update_fields['quantity'] = request.form['quantity']
+        if request.form['foil']:
+            update_fields['foil'] = request.form['foil']
 
+        if update_fields:
+            collections.update_one({"name" : name}, {"$set": update_fields})
+    return redirect(url_for('index'))
 @app.route('/delete_card', methods=['POST'])
 def delete_card():
     name = request.form['name']

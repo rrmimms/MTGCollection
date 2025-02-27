@@ -3,24 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <title>MTG Collection Manager</title>
+    <script>
+        function setFormAction(action){
+            document.getElementById('cardform').action = action;
+        }
+
+        function displayImage(url){
+            document.getElementById('cardImage').src = url;
+            document.getElementById('cardImage').style.display = 'block';
+            document.getElementById('confirmSection').style.display = 'block';
+        }
+
+        async function checkCardImage(event){
+            event.preventDefault();
+            const form = document.getElementById('cardform');
+            const name = form.element['name'].value;
+            const set = form.element['set'].value;
+
+            const response = await fetch(`/get_image`, {
+                method: 'GET',
+            });
+
+            if (response.ok){
+                const data = await response.json();
+                displayImage(data.image_url);
+            }
+        }
+
+         async function handleFormSubmission(event){
+            event.preventDefault();
+            const form = event.target;
+            const action = form.action;
+            const formData = new FormData(form);
+            const response = await fetch(action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                displayImage(data.image_url);
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>MTG Collection Manager</h1>
-    <form action="/add_card" method = "post">
-        <h2>Add Card</h2>
-        <label for="name">Name:</label>
-         <input type="text" id="name" name="name" required><br>
-        <label for="set">Set:</label>
-        <input type="text" id="set" name="set" required><br>
-        <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" required><br>
-        <label for="foil">Foil:</label>
-        <select id="foil" name="foil">
-            <option value="True">True</option>
-            <option value="False">False</option>
-        </select><br>
-        <button type="submit">Add Card</button>
+    <form id="cardform" method = "post" onsubmit="return checkCardImage(event)">
+        <h2>Lookup Card</h2>
+        <div style="margin-bottom: 10px;">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label for="set">Set Code:</label>
+            <input type="text" id="set" name="set"><br>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required><br>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label for="foil">Foil:</label>
+             <select id="foil" name="foil">
+                 <option value="True">True</option>
+                 <option value="False">False</option>
+             </select>
+        </div>
+        <button type="submit">Lookup Card</button>
     </form>
+    <div id="confirmSection" style="display:none; margin-top: 20px;">
+        <img id="cardImage" style="display:none; margin-top: 20px;" alt="Card Image">
+        <p>Is this the card you'd like to add?</p>
+        <button type="button" onclick="setFormAction('/add_card'); handleFormSubmission(Event)">Yes</button>
+        <button type="button" onclick="document.getElementById('confirmSection').style.display='none'">No</button>
+    </div>
     <a href="/get_collection">View Collection</a>
+
+
 </body>
 </html>
